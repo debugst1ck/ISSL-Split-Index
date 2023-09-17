@@ -9,8 +9,8 @@
 #include <fstream>
 #include <filesystem>
 
-#include "include/phmap.h"
-#include "include/cfdPenalties.h"
+#include "phmap.h"
+#include "cfdPenalties.h"
 
 // Compile time constants ->
 
