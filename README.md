@@ -39,6 +39,10 @@ I would imagine ISSL as a dictionary, with each word being an offtarget. Previou
 ## Compilation
 
 ```bash
+g++.exe -g ./src/CreateSplitIndex.cpp -o ./bin/CreateSplitIndex.exe -O3
+```
+
+```bash
 g++.exe -g ./src/ReadSplitIndex.cpp -o ./bin/ReadSplitIndex.exe -I ./include -O3
 ```
 
