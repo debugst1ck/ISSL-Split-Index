@@ -34,7 +34,7 @@ I would imagine ISSL as a dictionary, with each word being an offtarget. Previou
 
 ## Dependencies
 
-- No dependencies, Yay!
+- The original cracking project to isolate offtargets, other than that, no dependencies, Yay!
 
 ## Compilation
 
@@ -48,6 +48,20 @@ g++.exe -g ./src/ReadSplitIndex.cpp -o ./bin/ReadSplitIndex.exe -I ./include -O3
 
 - Requires the POSIX threads library for Linux environments, add the `-pthreads` argument to `g++` if not compiling.
 - Make sure you set the include path to `./include`.
+
+## Usage
+
+For reading and scoring `.issl` files.
+
+```bash
+[EXECUTABLE_PATH] [CANDIDATE_GUIDE_PATH] [MAXIMUM_DISTANCE] [SCORE_THRESHOLD] [ISSL_TABLE]
+```
+
+Example usage:
+
+```bash
+.src/ReadSplitIndex.exe ./test/issl/guides/CG20-100.txt 4 0 and ./test/issl/GCA_000008365.0.issl ./test/issl/GCA_000008365.1.issl ./test/issl/GCA_000008365.2.issl ./test/issl/GCA_000008365.3.issl ./test/issl/GCA_000008365.4.issl         
+```
 
 ## Performance
 
