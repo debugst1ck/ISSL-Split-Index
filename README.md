@@ -65,9 +65,13 @@ Example usage:
 
 ## Performance
 
-![Runtime difference chart](./report/perf_diff_norm.png)
+![Runtime difference chart](./report/runtime.png)
 
 Since this solution heavily depend on file IO, the runtime of the solution is heavily dependent on the number of queries and offtarget count, showing linear trend, the following graph shows the trend for offtargets for fixed query size.
+
+![Memory difference chart](./report/mem.png)
+
+Memory usage is, as expected significantly reduced.
 
 ## Future
 
