@@ -118,6 +118,12 @@ std::uint64_t sequenceToSignature(std::string::const_iterator charIterator, cons
     return signature;
 }
 
+/// @brief This function reads 64-bit integers from a binary file starting from a specified position and stores them in a vector.
+/// @param result A reference to a vector of integers to be read from the file will be stored in this vector.
+/// @param filePath The path to the binary file to be read.
+/// @param position The position in the file to start reading from.
+/// @param count Number of 64-bit integers to be read from the file.
+/// @return This function returns true if the file was successfully read.
 bool read64Bits(std::vector<std::uint64_t> &result, const std::filesystem::path &filePath, const std::uint64_t &position, const std::uint64_t &count)
 {
     std::ifstream inputFile(filePath, std::ios::binary);
@@ -130,6 +136,12 @@ bool read64Bits(std::vector<std::uint64_t> &result, const std::filesystem::path 
     return true;
 }
 
+/// @brief Get specified number of scores from the ISSL sub index file and store them into the parallel hash map
+/// @param scoresTable Reference to the parallel hash map for the storage of the mismatches/scores
+/// @param fileName Constant reference to path of ISSL file
+/// @param scoresCount Number of mismatches/scores to be extracted
+/// @param position The offset to the scores table within the ISSL
+/// @return `true` if the scores are successfully extracted
 bool readScoresTable(phmap::flat_hash_map<std::uint64_t, double> &scoresTable, const std::filesystem::path &fileName, const std::uint64_t &scoresCount, const std::uint64_t &position)
 {
     scoresTable.reserve(scoresCount);
@@ -144,6 +156,9 @@ bool readScoresTable(phmap::flat_hash_map<std::uint64_t, double> &scoresTable, c
     return true;
 }
 
+/// @brief Get the precalculated header from the ISSL file
+/// @param filePath The path to the file
+/// @return The header, duh
 SubIndexHeader getSubIndexHeader(const std::filesystem::path &filePath)
 {
     std::vector<std::uint64_t> headerArray;
@@ -151,6 +166,9 @@ SubIndexHeader getSubIndexHeader(const std::filesystem::path &filePath)
     return *reinterpret_cast<SubIndexHeader *>(headerArray.data());
 }
 
+/// @brief Parses the string argument provided to enum values for concrete definition
+/// @param argument The argument as a string reference
+/// @return The `ScoreMethod` enum value.
 ScoreMethod parseScoreMethod(const std::string &argument)
 {
     static const std::unordered_map<std::string, ScoreMethod> lookUpTable = {
@@ -246,9 +264,9 @@ std::uint64_t computeSearchSlice(const std::uint64_t search, const std::uint64_t
 }
 
 double calculateCFDScores(
-    uint64_t distance, const uint64_t maximumDistance,
+    std::uint64_t distance, const std::uint64_t maximumDistance,
     std::uint64_t searchSignature, std::uint32_t signatureId, std::uint32_t occurrences,
-    std::vector<uint64_t> &offtargets)
+    std::vector<std::uint64_t> &offtargets)
 {
     double cfdScore = 0.0;
     if (distance == 0)
@@ -262,12 +280,12 @@ double calculateCFDScores(
         for (size_t pos = 0; pos < 20; pos++)
         {
 
-            uint64_t searchSigIdentityPos = (searchSignature & (0b11UL << (pos * 2))) >> (pos * 2);
+            std::uint64_t searchSigIdentityPos = (searchSignature & (0b11UL << (pos * 2))) >> (pos * 2);
             searchSigIdentityPos <<= 2;
-            uint64_t offtargetIdentityPos = (offtargets[signatureId] & (0b11UL << (pos * 2))) >> (pos * 2);
+            std::uint64_t offtargetIdentityPos = (offtargets[signatureId] & (0b11UL << (pos * 2))) >> (pos * 2);
             if (searchSigIdentityPos >> 2 != offtargetIdentityPos)
             {
-                uint64_t mask = (pos << 4 | searchSigIdentityPos | (offtargetIdentityPos ^ 0b11UL));
+                std::uint64_t mask = (pos << 4 | searchSigIdentityPos | (offtargetIdentityPos ^ 0b11UL));
                 cfdScore *= cfdPosPenalties[mask];
             }
         }
@@ -340,7 +358,7 @@ std::streampos readSlice(std::vector<std::uint64_t> &slice, const std::filesyste
 {
     std::ifstream inputFile(filePath, std::ios::binary);
     inputFile.seekg(initialPosition);
-    uint64_t sliceKeyCount = 0;
+    std::uint64_t sliceKeyCount = 0;
     inputFile.read(reinterpret_cast<char *>(&sliceKeyCount), sizeof(std::uint64_t));
     slice.resize(sliceKeyCount);
     for (std::uint64_t keyIndex = 0; keyIndex < sliceKeyCount; keyIndex++)
@@ -356,12 +374,12 @@ int main(int argc, char **argv)
 
     if (argc < 4)
     {
-        fprintf(stderr, "Usage: %s [query file] [max distance] [score-threshold] [score-method] [issltable]\n", argv[0]);
+        std::cerr << "Usage: " << argv[0] << " [CANDIDATE_GUIDE_PATH] [MAXIMUM_DISTANCE] [SCORE_THRESHOLD] [ISSL_TABLE]" << NEWLINE;
         return EXIT_FAILURE;
     }
 
     const std::filesystem::path queryFile = std::filesystem::path(argv[1]);
-    const uint64_t maximumDistance = std::stoi(argv[2]);
+    const std::uint64_t maximumDistance = std::stoi(argv[2]);
     const double threshold = std::stod(argv[3]);
     const std::string scoreMethodArg = std::string(argv[4]);
     std::vector<std::filesystem::path> subIndexPaths;
@@ -391,64 +409,65 @@ int main(int argc, char **argv)
     phmap::flat_hash_map<std::uint64_t, double> scoresTable;
     readScoresTable(scoresTable, subIndexPaths[0], subIndexHeaders[0].scoreCount, offsetToScores);
 
-    std::vector<uint64_t> querySignatures;
+    std::vector<std::uint64_t> querySignatures;
     readQuerySignatures(querySignatures, queryFile, subIndexHeaders[0].sequenceLength);
 
     const std::uint64_t offsetToSliceList = (sizeof(SubIndexHeader) + (subIndexHeaders[0].offtargetCount * 8) + (subIndexHeaders[0].scoreCount * 16));
 
     std::vector<std::vector<std::uint64_t>> offsetsToSlices(subIndexHeaders[0].sliceCount);
 
-    for (uint64_t i = 0; i < subIndexHeaders[0].sliceCount; i++)
+    for (std::uint64_t i = 0; i < subIndexHeaders[0].sliceCount; i++)
     {
         readSliceOffsets(offsetsToSlices[i], subIndexPaths[i], offsetToSliceList, computeLimit(subIndexHeaders[0].sliceWidth));
     }
 
-    uint64_t offtargetToggleCount = (subIndexHeaders[0].offtargetCount / (sizeof(uint64_t) * 8)) + 1;
+    std::uint64_t offtargetToggleCount = (subIndexHeaders[0].offtargetCount / (sizeof(std::uint64_t) * 8)) + 1;
 
     std::vector<double> querySignatureMitScores(querySignatures.size());
     std::vector<double> querySignatureCfdScores(querySignatures.size());
 
-    for (uint64_t searchIndex = 0; searchIndex < querySignatures.size(); searchIndex++)
+    for (std::uint64_t searchIndex = 0; searchIndex < querySignatures.size(); searchIndex++)
     {
         printProgressBar(searchIndex, querySignatures.size(), 100);
 
-        std::vector<uint64_t> offtargetToggles(offtargetToggleCount);
+        std::vector<std::uint64_t> offtargetToggles(offtargetToggleCount);
 
-        uint64_t searchSignature = querySignatures[searchIndex];
+        std::uint64_t searchSignature = querySignatures[searchIndex];
 
         double totalScoreMit = 0.0;
         double totalScoreCfd = 0.0;
 
-        uint64_t offTargetSitesScoredCount = 0;
+        std::uint64_t offTargetSitesScoredCount = 0;
 
         const double maximumSum = (10000.0 - threshold * 100) / threshold;
 
         bool checkNextSlice = true;
 
-        for (uint64_t sliceIndex = 0; sliceIndex < subIndexHeaders[0].sliceCount; sliceIndex++)
+        for (std::uint64_t sliceIndex = 0; sliceIndex < subIndexHeaders[0].sliceCount; sliceIndex++)
         {
             const SubIndexHeader header = getSubIndexHeader(subIndexPaths[sliceIndex]);
             std::vector<std::uint64_t> slice;
-            
-            uint64_t searchSlice = computeSearchSlice(searchSignature, header.sliceWidth, sliceIndex);
+
+            std::uint64_t searchSlice = computeSearchSlice(searchSignature, header.sliceWidth, sliceIndex);
 
             readSlice(slice, subIndexPaths[sliceIndex], offsetsToSlices[sliceIndex][searchSlice]);
 
-            for (uint64_t keyIndex = 0; keyIndex < slice.size(); keyIndex++)
+            for (std::uint64_t keyIndex = 0; keyIndex < slice.size(); keyIndex++)
             {
-                uint64_t sequenceSignatureKey = slice[keyIndex];
-                uint32_t signatureId = sequenceSignatureKey & 0xFFFFFFFFULL;
-                uint32_t occurrences = (sequenceSignatureKey >> (32));
+                std::uint64_t sequenceSignatureKey = slice[keyIndex];
 
-                uint64_t mismatches = computeMismatches(searchSignature, offtargets[signatureId]);
+                std::uint32_t signatureId = sequenceSignatureKey & 0xFFFFFFFFULL;
+                std::uint32_t occurrences = (sequenceSignatureKey >> (32));
 
-                uint64_t distance = std::__popcount(mismatches);
+                std::uint64_t mismatches = computeMismatches(searchSignature, offtargets[signatureId]);
+
+                std::uint64_t distance = std::__popcount(mismatches);
 
                 if (distance >= 0 && distance <= maximumDistance)
                 {
                     // note that this is a reverse iterator, so addition is reversed
-                    std::reverse_iterator<std::vector<uint64_t>::iterator> offtargetFlagIterator = offtargetToggles.rbegin() + (signatureId / 64);
-                    uint64_t seenOfftargetAlready = (*offtargetFlagIterator >> (signatureId % 64)) & 1ULL;
+                    std::reverse_iterator<std::vector<std::uint64_t>::iterator> offtargetFlagIterator = offtargetToggles.rbegin() + (signatureId / 64);
+                    std::uint64_t seenOfftargetAlready = (*offtargetFlagIterator >> (signatureId % 64)) & 1ULL;
 
                     if (!seenOfftargetAlready)
                     {
@@ -483,9 +502,11 @@ int main(int argc, char **argv)
         querySignatureCfdScores[searchIndex] = 10000.0 / (100.0 + totalScoreCfd);
     }
 
+    // Break the progress bar
     std::cout << NEWLINE;
+    
     constexpr const char fieldSeparator[] = ", ";
-    for (uint64_t searchIndex = 0; searchIndex < querySignatures.size(); searchIndex++)
+    for (std::uint64_t searchIndex = 0; searchIndex < querySignatures.size(); searchIndex++)
     {
         std::string querySequence = signatureToSequence(querySignatures[searchIndex], subIndexHeaders[0].sequenceLength);
         double scoreMIT = calculateMIT ? querySignatureMitScores[searchIndex] : -1.0;

@@ -51,6 +51,18 @@ g++.exe -g ./src/ReadSplitIndex.cpp -o ./bin/ReadSplitIndex.exe -I ./include -O3
 
 ## Usage
 
+For converting the offtargets to binary encoded `.issl` ISSL slice list files.
+
+```bash
+[EXECUTABLE_PATH] [offtargetSites_PATH] [SEQUENCE_LENGTH] [SLICE_WIDTH(BITS)] [ISSL_TABLE]
+```
+
+Example usage:
+
+```bash
+.src/CreateSplitIndex.exe ./test/issl/guides/GCA_000008365.offtargets 20 8 ./test/issl/GCA_000008365.0.issl ./test/issl/GCA_000008365.1.issl ./test/issl/GCA_000008365.2.issl ./test/issl/GCA_000008365.3.issl ./test/issl/GCA_000008365.4.issl
+```
+
 For reading and scoring `.issl` files.
 
 ```bash
@@ -64,6 +76,8 @@ Example usage:
 ```
 
 ## Performance
+
+We did 38 tests on various genomic sequences from NCBI, and tested across multiple operating systems (Windows, Ubuntu). The runtime and memory usages are summarized in a plot.
 
 ![Runtime difference chart](./report/runtime.png)
 
@@ -79,6 +93,7 @@ New method to store offset to different slices in the slice-list, and load the s
 
 However, this must be tested, as this process would IO queries are done at different points of time (May be somewhat hard on HDD drives, but who uses HDD anyways? cloud providers do), which means compiler and operating system optimizations are scarce.
 
-## Maybe
+Additionally
 
-Multithreading for IO concurrency?
+- Multithreading for IO concurrency
+- Multiprocessing across multiple queries
