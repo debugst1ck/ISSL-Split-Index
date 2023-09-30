@@ -81,11 +81,11 @@ We did 38 tests on various genomic sequences from NCBI, and tested across multip
 
 ![Runtime difference chart](./report/runtime.png)
 
-Since this solution heavily depend on file IO, the runtime of the solution is heavily dependent on the number of queries and offtarget count, showing linear trend, the following graph shows the trend for offtargets for fixed query size.
+Since this solution heavily depend on file IO, the runtime of the solution is heavily dependent on the number of queries and offtarget count, showing linear trend, the following graph shows the trend for offtargets for fixed query size. The solution is "blazingly fast", given O(1) lookup time for each query.
 
 ![Memory difference chart](./report/mem.png)
 
-Memory usage is, as expected significantly reduced.
+Memory usage is, as expected significantly reduced, making it "economically nimble".
 
 ## Future
 
