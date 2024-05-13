@@ -87,13 +87,28 @@ Since this solution heavily depend on file IO, the runtime of the solution is he
 
 Memory usage is, as expected significantly reduced, making it "economically nimble".
 
-## Future
+## High-performance Bioinformatic analysis of gene editing targets
 
 New method to store offset to different slices in the slice-list, and load the slices to memory as needed for each query. In theory, this would reduce the maximum memory usage of loading slice-lists by 98%, and should increase performance, by reducing IO bound operations.
 
 However, this must be tested, as this process would IO queries are done at different points of time (May be somewhat hard on HDD drives, but who uses HDD anyways? cloud providers do), which means compiler and operating system optimizations are scarce.
 
-Additionally
+We did multiprocessing using multiple thread for each queries and each query running in parallel. But this proved to extremely inefficient memory usage and time-consuming for large candidate guides.
 
-- Multithreading for IO concurrency
-- Multiprocessing across multiple queries
+However for each query running in parallel with sub-queries in serial proved to be extremely efficient.
+
+![New structure](./report/new_structure.png)
+
+This uses a precalculated table to store the location each slice indices in storage and keeps it in memory for a constant *O(1)* lookup time. Although it serially then goes through the slice index afterwards, the skipping of previous indices greatly enhance speed for large ISSL files, while greatly reducing memory usage.
+
+![Speedy Runs](./report/runtime_new.png)
+
+As you can see here, blazingly fast scaling for large queries, as a result of (minimal) parallel processing
+
+![Efficiency](./report/mem_new.png)
+
+And just extremely efficient scaling for memory, he plateau for the original score offtargets is due to memory limit reaching and inability to scale because of the locsl machine instance having maximum threshold RAM of 4GB
+
+The memory overhead for multiprocessing is just non-existing for the new program since everything is just immediately loaded from storage, processed and discarded.
+
+And no, no memory leaks for now
